@@ -48,6 +48,9 @@ android {
 }
 
 dependencies {
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("com.google.dagger:hilt-android:2.59.2")
     ksp("com.google.dagger:hilt-android-compiler:2.59.2")

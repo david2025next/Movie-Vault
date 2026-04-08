@@ -1,5 +1,6 @@
 package com.example.movievault.data.network.retrofit
 
+import com.example.movievault.BuildConfig
 import com.example.movievault.data.network.MovaNetworkDataSource
 import com.example.movievault.data.network.model.NetworkMovie
 import kotlinx.serialization.SerialName
@@ -33,14 +34,13 @@ data class NetworkResponse<T>(
 )
 
 
-private val BACKEND_URL  =  "https://api.themoviedb.org/3/"
+private const val BACKEND_URL  = BuildConfig.BACKEND_URL
 
 @Singleton
 class MovaNetworkRetrofit @Inject constructor(
     networkJson : Json,
     private val okHttpCallFactory : dagger.Lazy<OkHttpClient>
 ) : MovaNetworkDataSource {
-
     private val retrofit  = Retrofit.Builder()
         .baseUrl(BACKEND_URL)
         .addConverterFactory(

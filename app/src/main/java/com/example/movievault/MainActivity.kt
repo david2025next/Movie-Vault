@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.example.movievault.data.network.MovaNetworkDataSource
+import com.example.movievault.ui.home.HomeScreen
 import com.example.movievault.ui.theme.MovieVaultTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -15,22 +16,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var movaNetworkDataSource : MovaNetworkDataSource
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        lifecycleScope.launch {
-
-            val movies = movaNetworkDataSource.getMovies(1)
-
-            Log.d("Movies", "onCreate: size ${movies.size}")
-        }
         setContent {
-            MovieVaultTheme {}
+            MovieVaultTheme {
+                HomeScreen()
+            }
         }
     }
 }
