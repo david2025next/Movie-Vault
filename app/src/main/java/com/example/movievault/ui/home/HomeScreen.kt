@@ -1,27 +1,29 @@
 package com.example.movievault.ui.home
 
-import android.util.Log
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -34,34 +36,45 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.example.movievault.R
+import com.example.movievault.domain.DataErrors
+import com.example.movievault.ui.utils.UiText
 import com.example.movievault.ui.utils.asUiText
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()){
+fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
 
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     HomeScreen(
-        uiState = uiState
+        uiState = uiState,
+        snackBarHostState = snackBarHostState,
+        onRetry = homeViewModel::retry
     )
 }
 
 @Composable
-private fun HomeScreen(uiState: HomeUiState, modifier: Modifier = Modifier) {
+private fun HomeScreen(
+    uiState: HomeUiState,
+    snackBarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {}
+) {
 
-    Scaffold(modifier) { paddingValues ->
+    Scaffold(
+        modifier,
+        snackbarHost = { SnackbarHost(snackBarHostState) })
+    { paddingValues ->
 
         Column(
             modifier = Modifier.padding(paddingValues)
         ) {
             when (uiState) {
                 is HomeUiState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Text(uiState.error.asUiText().asString())
-                    }
+                    HandleDataError(uiState.error, snackBarHostState, onRetry)
                 }
+
                 HomeUiState.Loading -> {
                     LoadingScreen()
                 }
@@ -75,6 +88,31 @@ private fun HomeScreen(uiState: HomeUiState, modifier: Modifier = Modifier) {
 }
 
 
+@Composable
+private fun HandleDataError(
+    error: DataErrors,
+    snackBarHostState: SnackbarHostState,
+    onRetry: () -> Unit
+) {
+
+    val message = error.asUiText().asString()
+    val actionLabel =
+        if (error == DataErrors.NetworkErrors.TIMEOUT || error == DataErrors.NetworkErrors.NO_INTERNET) {
+            UiText.StringResource(R.string.action_retry).asString()
+        } else null
+
+    LaunchedEffect(error) {
+        val result = snackBarHostState.showSnackbar(
+            message = message,
+            actionLabel = actionLabel,
+            withDismissAction = actionLabel == null
+        )
+        when (result) {
+            SnackbarResult.Dismissed -> {}
+            SnackbarResult.ActionPerformed -> onRetry()
+        }
+    }
+}
 
 @Composable
 private fun LoadingScreen() {
@@ -92,15 +130,12 @@ fun MoviesList(
     movies: List<MovieItemUiState>,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+    LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(movies) { movie ->
-            MovieCard(movieItem = movie)
+            MovieCard(movie)
         }
     }
 }
@@ -111,31 +146,39 @@ private fun MovieCard(
     modifier: Modifier = Modifier
 ) {
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column {
-            MovieImage(
-                posterPath = movieItem.posterPath,
-                modifier = Modifier.fillMaxWidth()
+    Column(modifier.fillMaxWidth()) {
+        MovieImage(movieItem.posterPath, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(4.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = movieItem.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
             )
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = movieItem.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = movieItem.releaseDate,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "⭐ ${movieItem.voteAverage}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "(${movieItem.voteCount})",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(text = movieItem.releaseDate, style = MaterialTheme.typography.bodyMedium)
             }
         }
+
     }
 }
 
@@ -147,12 +190,11 @@ private fun MovieImage(
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(posterPath)
-            .size(150)
             .crossfade(true)
             .build(),
         contentDescription = "Affiche du film",
         contentScale = ContentScale.Crop,
-        modifier = modifier.aspectRatio(0.66f),
+        modifier = modifier.aspectRatio(16f / 9f),
         placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
         error = painterResource(id = android.R.drawable.ic_dialog_alert)
     )

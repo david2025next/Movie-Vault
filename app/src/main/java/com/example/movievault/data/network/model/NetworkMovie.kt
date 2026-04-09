@@ -16,7 +16,9 @@ data class NetworkMovie(
     @SerialName("release_date")
     val releaseDate: String,
     @SerialName("vote_average")
-    val voteAverage: Double
+    val voteAverage: Double,
+    @SerialName("vote_count")
+    val voteCount : Int
 )
 
 
@@ -24,5 +26,7 @@ fun NetworkMovie.asExternalModel() = Movie(
     id = id,
     title = title,
     releaseDate = releaseDate,
-    posterPath = "$IMAGE_URL$posterPath"
+    posterPath = "$IMAGE_URL$posterPath",
+    voteAverage = voteAverage,
+    voteCount = voteCount
 )

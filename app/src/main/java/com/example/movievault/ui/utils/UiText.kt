@@ -1,5 +1,6 @@
 package com.example.movievault.ui.utils
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
@@ -17,4 +18,10 @@ sealed class UiText() {
         }
     }
 
+    fun asString(context: Context) : String{
+        return when(this) {
+            is DynamicString -> name
+            is StringResource -> context.getString(id, *args)
+        }
+    }
 }

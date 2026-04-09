@@ -50,6 +50,10 @@ class HomeViewModel @Inject constructor(
             _uiState.update { newState }
         }
     }
+
+    fun retry(){
+        initialize()
+    }
 }
 
 
@@ -57,12 +61,16 @@ fun Movie.toUi() = MovieItemUiState(
     id = id,
     title = title,
     posterPath = posterPath,
-    releaseDate = releaseDate
+    releaseDate = releaseDate,
+    voteAverage = voteAverage,
+    voteCount = voteCount
 )
 
 data class MovieItemUiState(
     val id: Int,
     val title: String,
     val releaseDate: String,
-    val posterPath: String
+    val posterPath: String,
+    val voteAverage : Double,
+    val voteCount : Int
 )

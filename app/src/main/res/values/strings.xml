@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Movie Vault</string>
     <string name="error_no_internet">Aucune connexion internet. Vérifiez votre Wi-Fi ou vos données mobiles.</string>
-    <string name="error_timeout">La connexion est trop lente. Veuillez réessayer.</string>
+    <string name="error_timeout">La connexion est trop lente.</string>
     <string name="error_server">Le service est temporairement indisponible. Nos équipes sont sur le coup.</string>
     <string name="error_not_found">Le contenu demandé est introuvable.</string>
     <string name="error_rate_limit">Vous allez trop vite ! Veuillez patienter quelques instants.</string>
