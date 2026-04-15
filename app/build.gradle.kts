@@ -48,6 +48,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.core:core-splashscreen:1.0.0")
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

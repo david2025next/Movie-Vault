@@ -65,18 +65,17 @@ private data class HomeViewModelState(
         )
     }
 }
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val movieRepository: MovieRepository
 ) : ViewModel() {
-
     private val viewModelState = MutableStateFlow(HomeViewModelState(isLoading = true))
-
     val uiState = viewModelState
         .map(HomeViewModelState::toUiState)
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+            SharingStarted.Eagerly,
             viewModelState.value.toUiState()
         )
     private val _isRefreshing = MutableStateFlow(false)
@@ -103,6 +102,7 @@ class HomeViewModel @Inject constructor(
                 is Result.Error -> {
                     viewModelState.update { it.copy(error = result.error) }
                 }
+
                 is Result.Success -> {}
             }
             _isRefreshing.update { false }

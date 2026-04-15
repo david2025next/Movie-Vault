@@ -97,16 +97,12 @@ private fun HomeScreen(
             }
         ) {
 
-            if(uiState.isLoading){
-                LoadingScreen()
-            } else {
-                when(uiState) {
-                    is HomeUiState.HasMovies ->{
-                        MoviesList(uiState.items)
-                    }
-                    is HomeUiState.NoMovies ->{
-                        EmptyScreen()
-                    }
+            when(uiState) {
+                is HomeUiState.HasMovies ->{
+                    MoviesList(uiState.items)
+                }
+                is HomeUiState.NoMovies ->{
+                    EmptyScreen()
                 }
             }
         }
@@ -225,8 +221,8 @@ private fun MovieImage(
             .build(),
         contentDescription = "Affiche du film",
         contentScale = ContentScale.Crop,
-        modifier = modifier.aspectRatio(16f / 9f),
-        placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
+        modifier = modifier.aspectRatio(2f / 3f),
+        placeholder = painterResource(id = android.R.drawable.ic_menu_gallery), // placeholder for skeleton
         error = painterResource(id = android.R.drawable.ic_dialog_alert)
     )
 }
