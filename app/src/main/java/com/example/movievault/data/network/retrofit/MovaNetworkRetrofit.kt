@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 private interface MovaRetrofitApi{
 
-    @GET("movie/popular")
+    @GET("trending/movie/day")
     suspend fun getMovies(
         @Query("page") page : Int,
         @Query("language") language : String

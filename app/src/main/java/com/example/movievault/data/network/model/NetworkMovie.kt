@@ -22,7 +22,7 @@ data class NetworkMovie(
 )
 
 
-fun NetworkMovie.asExternalModel() = Movie(
+private fun NetworkMovie.asExternalModel() = Movie(
     id = id,
     title = title,
     releaseDate = releaseDate,
@@ -30,3 +30,5 @@ fun NetworkMovie.asExternalModel() = Movie(
     voteAverage = voteAverage,
     voteCount = voteCount
 )
+
+fun List<NetworkMovie>.toMovies() = this.map(NetworkMovie::asExternalModel)

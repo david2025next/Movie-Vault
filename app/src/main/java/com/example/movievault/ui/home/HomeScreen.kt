@@ -14,12 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,21 +49,28 @@ import com.example.movievault.ui.utils.asUiText
 fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
 
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
+    uiState.error?.let {
+        HandleError(it, snackBarHostState, homeViewModel::onRefresh)
+    }
     HomeScreen(
         uiState = uiState,
         snackBarHostState = snackBarHostState,
-        onRetry = homeViewModel::retry
+        isRefreshing = isRefreshing,
+        onRefresh = homeViewModel::onRefresh
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(
     uiState: HomeUiState,
     snackBarHostState: SnackbarHostState,
+    isRefreshing: Boolean,
     modifier: Modifier = Modifier,
-    onRetry: () -> Unit = {}
+    onRefresh: () -> Unit = {}
 ) {
 
     Scaffold(
@@ -67,41 +78,62 @@ private fun HomeScreen(
         snackbarHost = { SnackbarHost(snackBarHostState) })
     { paddingValues ->
 
-        Column(
-            modifier = Modifier.padding(paddingValues)
+        val state = rememberPullToRefreshState()
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+            state = state,
+            indicator = {
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isRefreshing,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    state = state
+                )
+            }
         ) {
-            when (uiState) {
-                is HomeUiState.Error -> {
-                    HandleDataError(uiState.error, snackBarHostState, onRetry)
-                }
 
-                HomeUiState.Loading -> {
-                    LoadingScreen()
-                }
-
-                is HomeUiState.Success -> {
-                    MoviesList(uiState.movies)
+            if(uiState.isLoading){
+                LoadingScreen()
+            } else {
+                when(uiState) {
+                    is HomeUiState.HasMovies ->{
+                        MoviesList(uiState.items)
+                    }
+                    is HomeUiState.NoMovies ->{
+                        EmptyScreen()
+                    }
                 }
             }
         }
     }
 }
 
-
 @Composable
-private fun HandleDataError(
-    error: DataErrors,
+fun EmptyScreen(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ){
+        Text("Movies empty")
+    }
+}
+@Composable
+private fun HandleError(
+    errors: DataErrors,
     snackBarHostState: SnackbarHostState,
-    onRetry: () -> Unit
+    onRefresh: () -> Unit
 ) {
-
-    val message = error.asUiText().asString()
+    val message = errors.asUiText().asString()
     val actionLabel =
-        if (error == DataErrors.NetworkErrors.TIMEOUT || error == DataErrors.NetworkErrors.NO_INTERNET) {
+        if (errors == DataErrors.NetworkErrors.TIMEOUT || errors == DataErrors.NetworkErrors.NO_INTERNET) {
             UiText.StringResource(R.string.action_retry).asString()
         } else null
-
-    LaunchedEffect(error) {
+    LaunchedEffect(errors) {
         val result = snackBarHostState.showSnackbar(
             message = message,
             actionLabel = actionLabel,
@@ -109,7 +141,7 @@ private fun HandleDataError(
         )
         when (result) {
             SnackbarResult.Dismissed -> {}
-            SnackbarResult.ActionPerformed -> onRetry()
+            SnackbarResult.ActionPerformed -> onRefresh()
         }
     }
 }
@@ -123,7 +155,6 @@ private fun LoadingScreen() {
         CircularProgressIndicator()
     }
 }
-
 
 @Composable
 fun MoviesList(

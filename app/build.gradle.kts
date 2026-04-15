@@ -48,6 +48,9 @@ android {
 }
 
 dependencies {
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
     implementation(libs.androidx.hilt.navigation.compose)
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
