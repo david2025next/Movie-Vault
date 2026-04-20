@@ -27,6 +27,12 @@ interface MovieDao {
     fun getPagingMovies() : PagingSource<Int, MovieEntity>
 
 
+    @Query(
+        value = """
+            SELECT MAX(updateAt) FROM movie
+        """
+    )
+    suspend fun lastUpdated() : Long
     @Upsert
     suspend fun upsertMovies(entities : List<MovieEntity>)
 

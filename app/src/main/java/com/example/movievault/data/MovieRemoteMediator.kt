@@ -1,5 +1,6 @@
 package com.example.movievault.data
 
+import android.text.format.Time
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -10,6 +11,7 @@ import com.example.movievault.data.database.model.MovieEntity
 import com.example.movievault.data.database.model.RemoteKeysEntity
 import com.example.movievault.data.network.MovaNetworkDataSource
 import com.example.movievault.data.network.model.toEntities
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class MovieRemoteMediator(
@@ -17,12 +19,22 @@ class MovieRemoteMediator(
     private val movieVaultDatabase: MovieVaultDatabase
 ) : RemoteMediator<Int, MovieEntity>() {
 
+    val movieDao = movieVaultDatabase.movieDao
+    val remoteKeysDao = movieVaultDatabase.remoteKeysDao
+
     companion object {
         const val TMDB_STARTING_PAGE_INDEX = 1
     }
 
     override suspend fun initialize(): InitializeAction {
-        return super.initialize()
+        val cacheTimeout = TimeUnit.HOURS.toMillis(1)
+        val lastUpdated = movieDao.lastUpdated()
+        val shouldRefresh =
+            lastUpdated == 0L || System.currentTimeMillis() - lastUpdated >= cacheTimeout
+        return if (shouldRefresh) {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        } else InitializeAction.SKIP_INITIAL_REFRESH
+
     }
 
     @OptIn(ExperimentalPagingApi::class)
@@ -33,21 +45,26 @@ class MovieRemoteMediator(
 
         val page = when (loadType) {
             LoadType.REFRESH -> {
-                val refreshKey = getRemoteKeyClosestToCurrentPosition(state)
-                refreshKey?.nextKey?.minus(1) ?: TMDB_STARTING_PAGE_INDEX
+                getRemoteKeyClosestToCurrentPosition(state)?.nextKey?.minus(1)
+                    ?: TMDB_STARTING_PAGE_INDEX
             }
+
             LoadType.PREPEND -> {
-                val refreshKey = getRemoteKeyForFirstItem(state)
-                val prevKey = refreshKey?.prevKey ?: return MediatorResult.Success(
-                    endOfPaginationReached = refreshKey != null
+                val remoteKey = getRemoteKeyForFirstItem(state) ?: return MediatorResult.Success(
+                    endOfPaginationReached = true
+                )
+                val prevKey = remoteKey.nextKey ?: return MediatorResult.Success(
+                    endOfPaginationReached = true
                 )
                 prevKey
             }
 
             LoadType.APPEND -> {
-                val refreshKey = getRemoteKeyForLastItem(state)
-                val nextKey = refreshKey?.nextKey ?: return MediatorResult.Success(
-                    endOfPaginationReached = refreshKey != null
+                val remoteKey = getRemoteKeyForLastItem(state) ?: return MediatorResult.Success(
+                    endOfPaginationReached = true
+                )
+                val nextKey = remoteKey.nextKey ?: return MediatorResult.Success(
+                    endOfPaginationReached = true
                 )
                 nextKey
             }
@@ -56,21 +73,22 @@ class MovieRemoteMediator(
         try {
             val moviesNetwork = movaNetworkDataSource.getMovies(page = page)
             val endOfPaginationReached = moviesNetwork.isEmpty()
+            val prevKey = if (page == TMDB_STARTING_PAGE_INDEX) null else page
+            val nextKey = if (endOfPaginationReached) null else page + 1
+            val remotesKey = moviesNetwork.map {
+                RemoteKeysEntity(
+                    movieId = it.id,
+                    prevKey = prevKey,
+                    nextKey = nextKey
+                )
+            }
             movieVaultDatabase.withTransaction {
-
                 if (loadType == LoadType.REFRESH) {
-                    movieVaultDatabase.remoteKeysDao.clearRemoteKeys()
-                    movieVaultDatabase.movieDao.clearMovies()
+                    remoteKeysDao.clearRemoteKeys()
+                    movieDao.clearMovies()
                 }
-                val prevKey = if (page == TMDB_STARTING_PAGE_INDEX) null else page - 1
-                val nextKey = if (endOfPaginationReached) null else page + 1
-                val keys = moviesNetwork.map {
-                    RemoteKeysEntity(
-                        movieId = it.id, prevKey = prevKey, nextKey = nextKey
-                    )
-                }
-                movieVaultDatabase.remoteKeysDao.insertAll(keys)
-                movieVaultDatabase.movieDao.insertAll(moviesNetwork.toEntities())
+                remoteKeysDao.insertAll(remotesKey)
+                movieDao.insertAll(moviesNetwork.toEntities())
             }
             return MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (ex: Exception) {
