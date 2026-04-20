@@ -12,7 +12,6 @@ class HomeViewModel @Inject constructor(
     private val movieRepository: MovieRepository
 ) : ViewModel() {
 
-    val uiState = movieRepository
-        .getMovies()
-        .cachedIn(viewModelScope)
+    val uiState = movieRepository.getMovies()
+
 }

@@ -27,6 +27,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +47,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -75,16 +79,30 @@ private fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MoviesScreen(
     pagingItems: LazyPagingItems<Movie>,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier
+    val state = rememberPullToRefreshState()
+    val isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
+    PullToRefreshBox(
+        modifier = modifier,
+        isRefreshing = isRefreshing,
+        state = state,
+        onRefresh = { pagingItems.refresh() },
+        indicator = {
+            Indicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                isRefreshing = isRefreshing,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                state = state
+            )
+        }
     ) {
         MoviesContent(pagingItems)
-
         MoviesRefreshStateHandler(pagingItems)
     }
 }
@@ -96,7 +114,7 @@ fun MoviesContent(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(pagingItems.itemCount) { index ->
+        items(pagingItems.itemCount, key = pagingItems.itemKey { it.id }) { index ->
             pagingItems[index]?.let { movie ->
                 MovieCard(movie)
             }
@@ -205,7 +223,7 @@ fun AnimatedShimmer() {
 fun FullScreenLoading() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column() {
-            repeat(7){
+            repeat(7) {
                 AnimatedShimmer()
             }
         }

@@ -8,15 +8,21 @@ import androidx.paging.map
 import com.example.movievault.data.MovieRemoteMediator
 import com.example.movievault.data.database.MovieVaultDatabase
 import com.example.movievault.data.database.model.asExternalModel
+import com.example.movievault.data.di.Dispatcher
+import com.example.movievault.data.di.MovaDispatchers
 import com.example.movievault.data.model.Movie
 import com.example.movievault.data.network.MovaNetworkDataSource
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OffLineFirstMoviesRepository @Inject constructor(
     private val movaNetworkDataSource: MovaNetworkDataSource,
-    private val movieVaultDatabase: MovieVaultDatabase
+    private val movieVaultDatabase: MovieVaultDatabase,
+    @Dispatcher(MovaDispatchers.IO) private val dispatcher: CoroutineDispatcher
 ) : MovieRepository {
     companion object {
         const val NETWORK_PAGE_SIZE = 20
@@ -31,10 +37,12 @@ class OffLineFirstMoviesRepository @Inject constructor(
         ),
         remoteMediator = MovieRemoteMediator(
             movieVaultDatabase = movieVaultDatabase,
-            movaNetworkDataSource = movaNetworkDataSource
+            movaNetworkDataSource = movaNetworkDataSource,
+            dispatcher = dispatcher
         ),
         pagingSourceFactory = { movieVaultDatabase.movieDao.getPagingMovies() }
     ).flow
         .map { value -> value.map { movieEntity -> movieEntity.asExternalModel() } }
+
 
 }
