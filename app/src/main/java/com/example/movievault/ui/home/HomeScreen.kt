@@ -114,7 +114,7 @@ fun MoviesContent(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(pagingItems.itemCount, key = pagingItems.itemKey { it.id }) { index ->
+        items(count = pagingItems.itemCount, key = pagingItems.itemKey { it.id }) { index ->
             pagingItems[index]?.let { movie ->
                 MovieCard(movie)
             }
@@ -175,7 +175,7 @@ fun MoviesAppendStateHandler(
 
         is LoadState.Error -> {
             BottomError(
-                message = state.error.message,
+                message = state.error.message!!,
                 onRetry = { pagingItems.retry() }
             )
         }
@@ -258,7 +258,7 @@ fun BottomLoading() {
 
 @Composable
 fun BottomError(
-    message: String?,
+    message: String,
     onRetry: () -> Unit
 ) {
     Row {
