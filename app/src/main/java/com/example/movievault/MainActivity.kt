@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.isLoading }
+        //splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.isLoading }
         setContent {
             MovieVaultTheme {
                 HomeScreen()

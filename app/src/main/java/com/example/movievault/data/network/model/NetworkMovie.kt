@@ -1,5 +1,6 @@
 package com.example.movievault.data.network.model
 
+import com.example.movievault.data.database.model.MovieEntity
 import com.example.movievault.data.model.Movie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -22,7 +23,7 @@ data class NetworkMovie(
 )
 
 
-private fun NetworkMovie.asExternalModel() = Movie(
+private fun NetworkMovie.asEntity() = MovieEntity(
     id = id,
     title = title,
     releaseDate = releaseDate,
@@ -31,4 +32,4 @@ private fun NetworkMovie.asExternalModel() = Movie(
     voteCount = voteCount
 )
 
-fun List<NetworkMovie>.toMovies() = this.map(NetworkMovie::asExternalModel)
+fun List<NetworkMovie>.toEntities() = this.map(NetworkMovie::asEntity)

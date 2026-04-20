@@ -48,16 +48,20 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-splashscreen:1.0.0")
+
+    implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.core.splashscreen)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
+    implementation(libs.coil.network.okhttp)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+    implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation("com.google.dagger:hilt-android:2.59.2")
-    ksp("com.google.dagger:hilt-android-compiler:2.59.2")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.retrofit.kotlin.serialization)
     implementation(libs.retrofit)
     implementation(libs.kotlinx.serialization.json)

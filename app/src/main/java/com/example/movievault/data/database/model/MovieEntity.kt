@@ -16,7 +16,7 @@ data class MovieEntity(
     val voteCount: Int
 )
 
-private fun MovieEntity.asExternalModel() = Movie(
+fun MovieEntity.asExternalModel() = Movie(
     id = id,
     title = title,
     releaseDate = releaseDate,

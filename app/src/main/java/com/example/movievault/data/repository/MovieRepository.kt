@@ -1,5 +1,6 @@
 package com.example.movievault.data.repository
 
+import androidx.paging.PagingData
 import com.example.movievault.data.model.Movie
 import com.example.movievault.domain.DataErrors
 import com.example.movievault.domain.Result
@@ -7,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
 
-    fun getMovies(page: Int = 1): Flow<List<Movie>>
+    fun getMovies(): Flow<PagingData<Movie>>
 
-    suspend fun refreshMovies() : Result<Unit, DataErrors>
 }
