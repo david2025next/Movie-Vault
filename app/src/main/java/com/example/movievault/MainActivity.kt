@@ -5,13 +5,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.movievault.ui.home.HomeScreen
 import com.example.movievault.ui.home.HomeViewModel
+import com.example.movievault.ui.home.MoviesScreen
 import com.example.movievault.ui.theme.MovieVaultTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.getValue
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -26,7 +30,15 @@ class MainActivity : ComponentActivity() {
         //splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.isLoading }
         setContent {
             MovieVaultTheme {
-                HomeScreen()
+                val snackBarHostState = remember { SnackbarHostState() }
+                Scaffold(
+                    snackbarHost = { SnackbarHost(snackBarHostState) }
+                ) { paddingValues ->
+                    MoviesScreen(
+                        snackBarHostState = snackBarHostState,
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
             }
         }
     }

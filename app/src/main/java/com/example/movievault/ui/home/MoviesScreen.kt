@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,9 +20,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -33,19 +45,135 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.example.movievault.R
 import com.example.movievault.data.model.Movie
+import com.example.movievault.domain.DataErrors
+import com.example.movievault.ui.utils.UiText
+import com.example.movievault.ui.utils.asUiText
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
+fun MoviesScreen(
+    modifier: Modifier = Modifier,
+    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    homeViewModel: HomeViewModel = hiltViewModel()
+) {
     val items = homeViewModel.uiState.collectAsLazyPagingItems()
-    LazyColumn(
-        Modifier.fillMaxSize()
+    val error by homeViewModel.error.collectAsStateWithLifecycle()
+    error?.let {
+        HandleError(
+            error = it,
+            snackBarHostState = snackBarHostState,
+            onRetry = {
+                homeViewModel.resetError()
+                items.retry() }
+        )
+    }
+    MoviesScreen(
+        items,
+        errorSnackBar = homeViewModel::errorHandler,
+        modifier = modifier.fillMaxSize()
+    )
+}
+
+@Composable
+private fun HandleError(
+    error: DataErrors,
+    snackBarHostState: SnackbarHostState,
+    onRetry: () -> Unit
+) {
+    val text = error.asUiText().asString()
+    val actionLabel =
+        if (error == DataErrors.NetworkErrors.NO_INTERNET) UiText.StringResource(R.string.action_retry)
+            .asString() else null
+    LaunchedEffect(key1 = Unit) {
+        val result = snackBarHostState.showSnackbar(
+            message = text,
+            actionLabel = actionLabel
+        )
+        when (result) {
+            SnackbarResult.Dismissed -> {}
+            SnackbarResult.ActionPerformed -> onRetry()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MoviesScreen(
+    items: LazyPagingItems<Movie>,
+    modifier: Modifier = Modifier,
+    errorSnackBar: (e: Throwable) -> Unit
+) {
+    val pullToRefreshState = rememberPullToRefreshState()
+    val isRefreshing = items.loadState.refresh is LoadState.Loading
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        state = pullToRefreshState,
+        onRefresh = { items.refresh() },
+        modifier = modifier,
+        indicator = {
+            Indicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing
+            )
+        }
     ) {
+        MoviesContent(items, errorSnackBar)
+        MoviesRefreshStateHandler(items, errorSnackBar)
+    }
+}
+
+@Composable
+fun MoviesRefreshStateHandler(items: LazyPagingItems<Movie>, errorHandle: (e: Throwable) -> Unit) {
+    when (val state = items.loadState.refresh) {
+        is LoadState.Error -> {
+            if (items.itemCount == 0) {
+                FullScreenError()
+            }
+            errorHandle(state.error)
+        }
+
+        LoadState.Loading -> {
+            if (items.itemCount == 0) {
+                FullScreenLoading()
+            }
+        }
+
+        is LoadState.NotLoading -> Unit
+    }
+}
+
+@Composable
+fun FullScreenError(modifier: Modifier = Modifier) {
+    Box(
+        modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Error ")
+    }
+}
+
+@Composable
+fun FullScreenLoading(modifier: Modifier = Modifier) {
+    Column(modifier) {
+        repeat(2) {
+            AnimatedShimmer()
+        }
+    }
+}
+
+@Composable
+private fun MoviesContent(items: LazyPagingItems<Movie>, errorSnackBar: (e: Throwable) -> Unit) {
+    LazyColumn() {
         items(
             count = items.itemCount,
             key = items.itemKey { it.id }
@@ -54,8 +182,35 @@ fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
                 MovieItem(movie)
             }
         }
+
+        item {
+            MoviesAppendStateHandler(items, errorHandle = errorSnackBar)
+        }
     }
 }
+
+@Composable
+fun MoviesAppendStateHandler(items: LazyPagingItems<Movie>, errorHandle: (e: Throwable) -> Unit) {
+    when (val state = items.loadState.append) {
+        is LoadState.Error -> {
+            errorHandle(state.error)
+        }
+
+        LoadState.Loading -> BottomLoading()
+        is LoadState.NotLoading -> Unit
+    }
+}
+
+@Composable
+fun BottomLoading(modifier: Modifier = Modifier) {
+    Box(
+        modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
 @Composable
 private fun MovieItem(
     item: Movie,
