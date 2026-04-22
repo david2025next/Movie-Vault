@@ -9,22 +9,15 @@ import androidx.room.withTransaction
 import com.example.movievault.data.database.MovieVaultDatabase
 import com.example.movievault.data.database.model.MovieEntity
 import com.example.movievault.data.database.model.RemoteKeysEntity
-import com.example.movievault.data.di.Dispatcher
-import com.example.movievault.data.di.MovaDispatchers
 import com.example.movievault.data.network.MovaNetworkDataSource
 import com.example.movievault.data.network.model.toEntities
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class MovieRemoteMediator(
     private val movaNetworkDataSource: MovaNetworkDataSource,
-    private val movieVaultDatabase: MovieVaultDatabase,
-    private val dispatcher: CoroutineDispatcher
+    private val movieVaultDatabase: MovieVaultDatabase
 ) : RemoteMediator<Int, MovieEntity>() {
-
     val movieDao = movieVaultDatabase.movieDao
     val remoteKeysDao = movieVaultDatabase.remoteKeysDao
 
@@ -64,7 +57,6 @@ class MovieRemoteMediator(
             }
 
             LoadType.APPEND -> {
-                Log.d("TAG", "load: append")
                 val remoteKey = getRemoteKeyForLastItem(state)
                 val nextKey = remoteKey?.nextKey ?: return MediatorResult.Success(
                     endOfPaginationReached = remoteKey != null
@@ -74,7 +66,7 @@ class MovieRemoteMediator(
         }
 
         return try {
-            Log.d("tag", "load: $page")
+
             val moviesNetwork = movaNetworkDataSource.getMovies(page = page)
             val endOfPaginationReached = moviesNetwork.isEmpty()
 

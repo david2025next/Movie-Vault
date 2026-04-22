@@ -19,7 +19,8 @@ data class NetworkMovie(
     @SerialName("vote_average")
     val voteAverage: Double,
     @SerialName("vote_count")
-    val voteCount : Int
+    val voteCount : Int,
+    val popularity : Double
 )
 
 
@@ -29,7 +30,8 @@ private fun NetworkMovie.asEntity() = MovieEntity(
     releaseDate = releaseDate,
     posterPath = "$IMAGE_URL$posterPath",
     voteAverage = voteAverage,
-    voteCount = voteCount
+    voteCount = voteCount,
+    popularity = popularity
 )
 
 fun List<NetworkMovie>.toEntities() = this.map(NetworkMovie::asEntity)

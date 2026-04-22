@@ -21,8 +21,7 @@ import javax.inject.Inject
 
 class OffLineFirstMoviesRepository @Inject constructor(
     private val movaNetworkDataSource: MovaNetworkDataSource,
-    private val movieVaultDatabase: MovieVaultDatabase,
-    @Dispatcher(MovaDispatchers.IO) private val dispatcher: CoroutineDispatcher
+    private val movieVaultDatabase: MovieVaultDatabase
 ) : MovieRepository {
     companion object {
         const val NETWORK_PAGE_SIZE = 20
@@ -32,13 +31,11 @@ class OffLineFirstMoviesRepository @Inject constructor(
     override fun getMovies(): Flow<PagingData<Movie>> = Pager(
         config = PagingConfig(
             pageSize = NETWORK_PAGE_SIZE,
-            prefetchDistance = 5,
             enablePlaceholders = false
         ),
         remoteMediator = MovieRemoteMediator(
             movieVaultDatabase = movieVaultDatabase,
             movaNetworkDataSource = movaNetworkDataSource,
-            dispatcher = dispatcher
         ),
         pagingSourceFactory = { movieVaultDatabase.movieDao.getPagingMovies() }
     ).flow

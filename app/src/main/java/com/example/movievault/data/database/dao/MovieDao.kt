@@ -22,7 +22,7 @@ interface MovieDao {
 
     @Query(
         value = """
-        SELECT * FROM movie
+        SELECT * FROM movie ORDER BY popularity DESC
     """)
     fun getPagingMovies() : PagingSource<Int, MovieEntity>
 

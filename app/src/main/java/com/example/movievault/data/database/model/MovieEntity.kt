@@ -14,7 +14,8 @@ data class MovieEntity(
     val posterPath: String,
     val voteAverage: Double,
     val voteCount: Int,
-    val updateAt : Long = System.currentTimeMillis()
+    val popularity : Double,
+    val updateAt: Long = System.currentTimeMillis()
 )
 
 fun MovieEntity.asExternalModel() = Movie(
@@ -26,15 +27,3 @@ fun MovieEntity.asExternalModel() = Movie(
     voteCount = voteCount
 )
 
-fun List<MovieEntity>.toMovies() = this.map(MovieEntity::asExternalModel)
-
-private fun Movie.toEntity() = MovieEntity(
-    id = id,
-    title = title,
-    releaseDate = releaseDate,
-    posterPath = posterPath,
-    voteAverage = voteAverage,
-    voteCount = voteCount
-)
-
-fun List<Movie>.toEntities() = this.map(Movie::toEntity)
