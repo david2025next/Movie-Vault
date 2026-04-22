@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -173,7 +174,7 @@ fun FullScreenError(modifier: Modifier = Modifier) {
 fun FullScreenLoading(modifier: Modifier = Modifier) {
     Column(modifier) {
         repeat(2) {
-            AnimatedShimmer()
+            MovieItemShimmer()
         }
     }
 }
@@ -296,39 +297,9 @@ private fun MovieImage(
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun AnimatedShimmer() {
-    val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.6f),
-        Color.LightGray.copy(alpha = 0.2f),
-        Color.LightGray.copy(alpha = 0.6f),
-    )
-
-    val transition = rememberInfiniteTransition()
-    val translateAnim = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1000,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset.Zero,
-        end = Offset(x = translateAnim.value, y = translateAnim.value)
-    )
-
-    MovieCardShimmer(brush = brush)
-}
-
-@Composable
-fun MovieCardShimmer(
-    brush: Brush,
+fun MovieItemShimmer(
     modifier: Modifier = Modifier
 ) {
     Column(modifier.fillMaxWidth()) {
@@ -337,7 +308,7 @@ fun MovieCardShimmer(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(2f / 3f)
-                .background(brush)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -353,20 +324,10 @@ fun MovieCardShimmer(
                     .fillMaxWidth(0.8f)
                     .height(20.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(brush)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(20.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(brush)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -378,7 +339,7 @@ fun MovieCardShimmer(
                         .width(100.dp)
                         .height(16.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(brush)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
 
                 Spacer(
@@ -386,7 +347,7 @@ fun MovieCardShimmer(
                         .width(60.dp)
                         .height(16.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(brush)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
             }
         }
