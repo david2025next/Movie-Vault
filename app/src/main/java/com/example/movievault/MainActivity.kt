@@ -12,7 +12,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.movievault.ui.home.HomeViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.movievault.ui.home.MoviesViewModel
 import com.example.movievault.ui.home.MoviesScreen
 import com.example.movievault.ui.theme.MovieVaultTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -20,14 +22,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel : HomeViewModel by  viewModels()
+    //private val viewModel : MoviesViewModel by  viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        //splashScreen.setKeepOnScreenCondition { viewModel.uiState.value.isLoading }
+
         setContent {
             MovieVaultTheme {
                 val snackBarHostState = remember { SnackbarHostState() }

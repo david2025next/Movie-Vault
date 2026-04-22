@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,13 +33,16 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,6 +55,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.movievault.R
@@ -63,22 +69,23 @@ import com.example.movievault.ui.utils.asUiText
 fun MoviesScreen(
     modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
-    homeViewModel: HomeViewModel = hiltViewModel()
+    moviesViewModel: MoviesViewModel = hiltViewModel()
 ) {
-    val items = homeViewModel.uiState.collectAsLazyPagingItems()
-    val error by homeViewModel.error.collectAsStateWithLifecycle()
+    val items = moviesViewModel.uiState.collectAsLazyPagingItems()
+    val error by moviesViewModel.error.collectAsStateWithLifecycle()
     error?.let {
         HandleError(
             error = it,
             snackBarHostState = snackBarHostState,
             onRetry = {
-                homeViewModel.resetError()
-                items.retry() }
+                moviesViewModel.resetError()
+                items.retry()
+            }
         )
     }
     MoviesScreen(
         items,
-        errorSnackBar = homeViewModel::errorHandler,
+        errorSnackBar = moviesViewModel::errorHandler,
         modifier = modifier.fillMaxSize()
     )
 }
@@ -256,19 +263,37 @@ private fun MovieItem(
 @Composable
 private fun MovieImage(
     posterPath: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeHolder: Painter = painterResource(R.drawable.ic_placeholder_movie)
 ) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(posterPath)
-            .crossfade(true)
-            .build(),
-        contentDescription = "Affiche du film",
-        contentScale = ContentScale.Crop,
-        modifier = modifier.aspectRatio(2f / 3f),
-        placeholder = painterResource(id = android.R.drawable.ic_menu_gallery), // placeholder for skeleton
-        error = painterResource(id = android.R.drawable.ic_dialog_alert)
+
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+    val imageLoader = rememberAsyncImagePainter(
+        model = posterPath,
+        onState = { state ->
+            isLoading = state is AsyncImagePainter.State.Loading
+            isError = state is AsyncImagePainter.State.Error
+        }
     )
+    Box(
+        modifier,
+
+        ) {
+        if (isLoading) {
+            Box(
+                modifier
+                    .aspectRatio(2f / 3f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+        }
+        Image(
+            painter = if (isError.not()) imageLoader else placeHolder,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.aspectRatio(2f / 3f),
+            contentDescription = null
+        )
+    }
 }
 
 @Composable
