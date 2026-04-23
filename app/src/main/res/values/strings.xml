@@ -15,4 +15,6 @@
 
     <string name="action_retry">Réessayer</string>
     <string name="action_ok">OK</string>
+    <string name="home">Home</string>
+    <string name="favorite">Favorites</string>
 </resources>

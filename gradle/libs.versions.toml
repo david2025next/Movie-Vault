@@ -24,6 +24,7 @@ nav3Core = "1.1.1"
 lifecycleViewmodelNav3 = "2.11.0-beta01"
 
 [libraries]
+androidx-compose-materialWindow = { module = "androidx.compose.material3:material3-window-size-class" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
