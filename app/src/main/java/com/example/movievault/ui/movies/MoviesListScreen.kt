@@ -2,6 +2,7 @@ package com.example.movievault.ui.movies
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,60 +51,50 @@ import coil3.compose.rememberAsyncImagePainter
 import com.example.movievault.R
 import com.example.movievault.data.model.Movie
 import com.example.movievault.domain.DataErrors
+import com.example.movievault.ui.LocalSnackbarHostState
 import com.example.movievault.ui.utils.UiText
 import com.example.movievault.ui.utils.asUiText
 
 @Composable
-fun MoviesScreen(
-    modifier: Modifier = Modifier,
-    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
+fun MoviesListScreen(
+    onMovieItemClicked: (Int) -> Unit,
+    onShowSnackbar: suspend (message: String, action: String?) -> Boolean,
     moviesViewModel: MoviesViewModel = hiltViewModel()
 ) {
+
     val items = moviesViewModel.uiState.collectAsLazyPagingItems()
     val error by moviesViewModel.error.collectAsStateWithLifecycle()
+
     error?.let {
-        HandleError(
-            error = it,
-            snackBarHostState = snackBarHostState,
-            onRetry = {
-                moviesViewModel.resetError()
+
+        val message = it.asUiText().asString()
+        val action =
+            if (it == DataErrors.NetworkErrors.NO_INTERNET) UiText.StringResource(R.string.action_retry)
+                .asString() else null
+
+        LaunchedEffect(key1 = Unit) {
+            val snackBarResult = onShowSnackbar(message, action)
+            if (snackBarResult) {
                 items.retry()
             }
-        )
+            moviesViewModel.resetError()
+        }
     }
-    MoviesScreen(
-        items,
+
+    MoviesListScreen(
+        items = items,
+        onMovieItemClicked = onMovieItemClicked,
         errorSnackBar = moviesViewModel::errorHandler,
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     )
 }
 
-@Composable
-private fun HandleError(
-    error: DataErrors,
-    snackBarHostState: SnackbarHostState,
-    onRetry: () -> Unit
-) {
-    val text = error.asUiText().asString()
-    val actionLabel =
-        if (error == DataErrors.NetworkErrors.NO_INTERNET) UiText.StringResource(R.string.action_retry)
-            .asString() else null
-    LaunchedEffect(key1 = Unit) {
-        val result = snackBarHostState.showSnackbar(
-            message = text,
-            actionLabel = actionLabel
-        )
-        when (result) {
-            SnackbarResult.Dismissed -> {}
-            SnackbarResult.ActionPerformed -> onRetry()
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MoviesScreen(
+private fun MoviesListScreen(
     items: LazyPagingItems<Movie>,
+    onMovieItemClicked: (Int) -> Unit,
     modifier: Modifier = Modifier,
     errorSnackBar: (e: Throwable) -> Unit
 ) {
@@ -122,7 +113,7 @@ private fun MoviesScreen(
             )
         }
     ) {
-        MoviesContent(items, errorSnackBar)
+        MoviesContent(items, errorSnackBar = errorSnackBar, onMovieItemClicked = onMovieItemClicked)
         MoviesRefreshStateHandler(items, errorSnackBar)
     }
 }
@@ -167,14 +158,18 @@ fun FullScreenLoading(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MoviesContent(items: LazyPagingItems<Movie>, errorSnackBar: (e: Throwable) -> Unit) {
+private fun MoviesContent(
+    items: LazyPagingItems<Movie>,
+    onMovieItemClicked: (Int) -> Unit,
+    errorSnackBar: (e: Throwable) -> Unit
+) {
     LazyColumn() {
         items(
             count = items.itemCount,
             key = items.itemKey { it.id }
         ) { index ->
             items[index]?.let { movie ->
-                MovieItem(movie)
+                MovieItem(movie, onMovieItemClicked = { onMovieItemClicked(movie.id) })
             }
         }
 
@@ -209,10 +204,17 @@ fun BottomLoading(modifier: Modifier = Modifier) {
 @Composable
 private fun MovieItem(
     item: Movie,
+    onMovieItemClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    Column(modifier.fillMaxWidth()) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = onMovieItemClicked
+            )
+    ) {
         MovieImage(item.posterPath, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(4.dp))
         Column(

@@ -20,14 +20,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavKey
 import com.example.movievault.R
-import com.example.movievault.ui.navigation.MovaDestinations
+import com.example.movievault.navigation.MovaDestinations
 import com.example.movievault.ui.theme.MovieVaultTheme
 
 @Composable
 fun AppDrawer(
     drawerState: DrawerState,
-    currentDestination: MovaDestinations,
+    currentDestination: NavKey,
     closeDrawer: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToFavorites: () -> Unit,
@@ -42,7 +43,7 @@ fun AppDrawer(
         NavigationDrawerItem(
             label = { Text(stringResource(R.string.home)) },
             icon = { Icon(painterResource(R.drawable.ic_home), contentDescription = null) },
-            selected = currentDestination == MovaDestinations.HomeNavKey,
+            selected = currentDestination == MovaDestinations.MovieListNavKey,
             onClick = {
                 navigateToHome()
                 closeDrawer()
@@ -90,7 +91,7 @@ private fun AppDrawerPreview(modifier: Modifier = Modifier) {
     MovieVaultTheme {
         AppDrawer(
             drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
-            currentDestination = MovaDestinations.HomeNavKey,
+            currentDestination = MovaDestinations.MovieListNavKey,
             navigateToHome = {},
             navigateToFavorites = {},
             closeDrawer = {}
