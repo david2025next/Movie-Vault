@@ -1,4 +1,4 @@
-package com.example.movievault.ui.home
+package com.example.movievault.ui.movies
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +19,8 @@ class MoviesViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<DataErrors?>(null)
     val error = _error.asStateFlow()
+    val uiState = movieRepository.getMovies().cachedIn(viewModelScope)
+
     fun errorHandler(error: Throwable) {
         val ex = error as Exception
         val dataError = ex.getDataError()
@@ -28,8 +30,6 @@ class MoviesViewModel @Inject constructor(
     fun resetError() {
         _error.update { null }
     }
-
-    val uiState = movieRepository.getMovies().cachedIn(viewModelScope)
 
 }
 

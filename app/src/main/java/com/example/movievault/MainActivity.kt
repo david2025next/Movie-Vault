@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -12,10 +11,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.movievault.ui.home.MoviesViewModel
-import com.example.movievault.ui.home.MoviesScreen
+import com.example.movievault.ui.movies.MoviesScreen
 import com.example.movievault.ui.theme.MovieVaultTheme
 import dagger.hilt.android.AndroidEntryPoint
 
