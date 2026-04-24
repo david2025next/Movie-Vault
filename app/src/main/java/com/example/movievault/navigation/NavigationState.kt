@@ -2,6 +2,7 @@ package com.example.movievault.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,10 @@ class NavigationState(
 ) {
     var topLevelRoute: NavKey by topLevelRoute
 
+    val currentSubStack : NavBackStack<NavKey>
+        get() = backStacks[topLevelRoute] ?: error("sub stack for $topLevelRoute does not exist")
+
+    val currentKey : NavKey by derivedStateOf { currentSubStack.last() }
 
 
     @Composable
@@ -33,8 +38,7 @@ class NavigationState(
 
         val decoratedEntries = backStacks.mapValues { (_, stack) ->
             val decorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
-                rememberViewModelStoreNavEntryDecorator()
+                rememberSaveableStateHolderNavEntryDecorator<NavKey>()
             )
             rememberDecoratedNavEntries(
                 backStack = stack,

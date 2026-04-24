@@ -16,14 +16,10 @@ class Navigator(
 
     fun goBack() {
 
-        val currentStack = state.backStacks[state.topLevelRoute]
-            ?: error("stack for ${state.topLevelRoute} does not exist")
-        val currentRoute = currentStack.last()
-
-        if (currentRoute == state.topLevelRoute) {
+        if (state.currentKey== state.topLevelRoute) {
             state.topLevelRoute = state.startRoute
         } else {
-            currentStack.removeLastOrNull()
+            state.currentSubStack.removeLastOrNull()
         }
     }
 }

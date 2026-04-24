@@ -12,19 +12,18 @@ import com.example.movievault.navigation.rememberNavigationState
 fun rememberMovaAppState(): MovaAppState {
 
     val navigationState = rememberNavigationState(MovaDestinations.MovieListNavKey, TOP_LEVEL_NAV_ITEMS.keys)
-    val showTopAppBar = remember(navigationState) { navigationState.backStacks[navigationState.topLevelRoute]?.last() != MovaDestinations.MovieDetail }
 
-    Log.d("TAG", "rememberMovaAppState: $showTopAppBar")
     return remember(navigationState) {
         MovaAppState(
-            navigationState = navigationState,
-            showTopAppBar = showTopAppBar
+            navigationState = navigationState
         )
     }
 }
 
 @Stable
 class MovaAppState(
-    val navigationState: NavigationState,
-    val showTopAppBar: Boolean
-)
+    val navigationState: NavigationState
+){
+    val showTopAppBar : Boolean
+        get() = navigationState.currentKey in navigationState.backStacks.keys
+}

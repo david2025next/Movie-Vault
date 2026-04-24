@@ -52,7 +52,7 @@ fun MovieVaultTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = MovaTypography,
         content = content
     )
 }

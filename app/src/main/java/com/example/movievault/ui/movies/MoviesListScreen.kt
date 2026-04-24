@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -113,7 +115,7 @@ private fun MoviesListScreen(
             )
         }
     ) {
-        MoviesContent(items, errorSnackBar = errorSnackBar, onMovieItemClicked = onMovieItemClicked)
+        MoviesContent(items =items, errorSnackBar = errorSnackBar, onMovieItemClicked = onMovieItemClicked)
         MoviesRefreshStateHandler(items, errorSnackBar)
     }
 }
@@ -163,7 +165,12 @@ private fun MoviesContent(
     onMovieItemClicked: (Int) -> Unit,
     errorSnackBar: (e: Throwable) -> Unit
 ) {
-    LazyColumn() {
+
+    val state : LazyListState  = rememberLazyListState()
+
+    LazyColumn(
+        state = state
+    ) {
         items(
             count = items.itemCount,
             key = items.itemKey { it.id }
