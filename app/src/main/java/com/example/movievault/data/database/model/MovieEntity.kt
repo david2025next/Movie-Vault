@@ -12,6 +12,8 @@ data class MovieEntity(
     val title: String,
     val releaseDate: String,
     val posterPath: String,
+    val overview : String,
+    val isFavorite : Boolean = false,
     val voteAverage: Double,
     val voteCount: Int,
     val popularity : Double,
@@ -24,6 +26,9 @@ fun MovieEntity.asExternalModel() = Movie(
     releaseDate = releaseDate,
     posterPath = posterPath,
     voteAverage = voteAverage,
-    voteCount = voteCount
+    voteCount = voteCount,
+    isFavorite = isFavorite,
+    overview = overview,
+    popularity = popularity
 )
 

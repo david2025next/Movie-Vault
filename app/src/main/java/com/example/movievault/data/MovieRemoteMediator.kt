@@ -25,16 +25,6 @@ class MovieRemoteMediator(
         const val TMDB_STARTING_PAGE_INDEX = 1
     }
 
-    override suspend fun initialize(): InitializeAction {
-        val cacheTimeout = TimeUnit.HOURS.toMillis(1)
-        val lastUpdated = movieDao.lastUpdated()
-        val shouldRefresh =
-            lastUpdated == 0L || System.currentTimeMillis() - lastUpdated >= cacheTimeout
-        return if (shouldRefresh) {
-            InitializeAction.LAUNCH_INITIAL_REFRESH
-        } else InitializeAction.SKIP_INITIAL_REFRESH
-    }
-
 
     @OptIn(ExperimentalPagingApi::class)
     override suspend fun load(

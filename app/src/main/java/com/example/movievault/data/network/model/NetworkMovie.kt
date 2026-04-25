@@ -31,7 +31,8 @@ private fun NetworkMovie.asEntity() = MovieEntity(
     posterPath = "$IMAGE_URL$posterPath",
     voteAverage = voteAverage,
     voteCount = voteCount,
-    popularity = popularity
+    popularity = popularity,
+    overview = overview
 )
 
 fun List<NetworkMovie>.toEntities() = this.map(NetworkMovie::asEntity)

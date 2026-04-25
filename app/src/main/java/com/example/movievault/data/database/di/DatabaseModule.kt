@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.movievault.data.database.dao.MovieDao
 import com.example.movievault.data.database.MovieVaultDatabase
+import com.example.movievault.data.database.dao.ActorDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,4 +28,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun providesMovieDao(movieVaultDatabase: MovieVaultDatabase) : MovieDao = movieVaultDatabase.movieDao
+
+    @Provides
+    @Singleton
+    fun providesActorDao(movieVaultDatabase: MovieVaultDatabase) : ActorDao = movieVaultDatabase.actorDao
 }

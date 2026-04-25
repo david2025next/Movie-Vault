@@ -9,12 +9,19 @@ import androidx.room.OnConflictStrategy.Companion.REPLACE
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.movievault.data.database.model.MovieEntity
+import com.example.movievault.data.model.Movie
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MovieDao {
 
-    @Insert(onConflict = REPLACE)
+    @Query(
+        value = """
+            SELECT * FROM movie WHERE id=:id
+        """
+    )
+    fun getMovie(id : Int) : Flow<Movie>
+    @Insert(onConflict =IGNORE)
     suspend fun insertAll(movies : List<MovieEntity>)
 
     @Insert(onConflict = IGNORE)
@@ -46,8 +53,17 @@ interface MovieDao {
 
     @Query(
         value = """
-            DELETE FROM movie
+            DELETE FROM movie WHERE isFavorite =false
         """
     )
     suspend fun clearMovies()
+
+    @Query(
+        value = """
+            UPDATE movie
+            SET isFavorite =:isFavorite
+            WHERE id =:movieId
+        """
+    )
+    suspend fun toggleFavorite(movieId : Int, isFavorite : Boolean)
 }

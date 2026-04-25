@@ -2,6 +2,7 @@ package com.example.movievault.data.network.retrofit
 
 import com.example.movievault.BuildConfig
 import com.example.movievault.data.network.MovaNetworkDataSource
+import com.example.movievault.data.network.model.NetworkActor
 import com.example.movievault.data.network.model.NetworkMovie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -11,37 +12,50 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import javax.inject.Inject
 import javax.inject.Singleton
 
 
-private interface MovaRetrofitApi{
+private interface MovaRetrofitApi {
 
     @GET("movie/popular")
     suspend fun getMovies(
-        @Query("page") page : Int,
-        @Query("language") language : String
-    ) : NetworkResponse<List<NetworkMovie>>
+        @Query("page") page: Int,
+        @Query("language") language: String
+    ): NetworkMovieResponse<List<NetworkMovie>>
+
+    @GET("movie/{movie_id}/credits")
+    suspend fun getActorsForMovieWithId(
+        @Path("movie_id") movieId: Int,
+        @Query("language") language: String = "fr-FR"
+    ): NetworkActorsResponse<List<NetworkActor>>
 }
 
 @Serializable
-data class NetworkResponse<T>(
+data class NetworkActorsResponse<T>(
+    @SerialName("cast")
+    val data: T,
+    val id: Int
+)
+
+@Serializable
+data class NetworkMovieResponse<T>(
 
     @SerialName("results")
-    val data : T,
-    val page: Int,
+    val data: T,
 )
 
 
-private const val BACKEND_URL  = BuildConfig.BACKEND_URL
+private const val BACKEND_URL = BuildConfig.BACKEND_URL
 
 @Singleton
 class MovaNetworkRetrofit @Inject constructor(
-    networkJson : Json,
-    private val okHttpCallFactory : dagger.Lazy<OkHttpClient>
+    networkJson: Json,
+    private val okHttpCallFactory: dagger.Lazy<OkHttpClient>
 ) : MovaNetworkDataSource {
-    private val retrofit  = Retrofit.Builder()
+    private val retrofit = Retrofit.Builder()
         .baseUrl(BACKEND_URL)
         .addConverterFactory(
             networkJson.asConverterFactory("application/json".toMediaType())
@@ -56,4 +70,7 @@ class MovaNetworkRetrofit @Inject constructor(
         page: Int,
         language: String
     ): List<NetworkMovie> = retrofit.getMovies(page, language).data
+
+    override suspend fun getActorsForMovieWithId(movieId: Int): List<NetworkActor> =
+        retrofit.getActorsForMovieWithId(movieId).data
 }

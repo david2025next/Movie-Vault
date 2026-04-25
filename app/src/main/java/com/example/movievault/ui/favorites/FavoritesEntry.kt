@@ -17,19 +17,8 @@ import com.example.movievault.navigation.MovaDestinations
 
 fun EntryProviderScope<NavKey>.favoritesEntry(onFavoriteClick : (Int) -> Unit) {
     entry<MovaDestinations.FavoritesNavKey> {
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Movie Favorites ")
-            Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = {onFavoriteClick(1)}
-            ) {
-                Text("Back")
-            }
-        }
+        FavoritesScreen(
+            onFavoriteClick = onFavoriteClick
+        )
     }
 }

@@ -21,14 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,9 +49,9 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.example.movievault.R
 import com.example.movievault.data.model.Movie
-import com.example.movievault.domain.DataErrors
-import com.example.movievault.ui.LocalSnackbarHostState
-import com.example.movievault.ui.utils.UiText
+import com.example.movievault.ui.components.DynamicImageAsync
+import com.example.movievault.ui.components.HandleErrorSnackBar
+import com.example.movievault.ui.utils.asActionLabel
 import com.example.movievault.ui.utils.asUiText
 
 @Composable
@@ -68,19 +65,13 @@ fun MoviesListScreen(
     val error by moviesViewModel.error.collectAsStateWithLifecycle()
 
     error?.let {
-
-        val message = it.asUiText().asString()
-        val action =
-            if (it == DataErrors.NetworkErrors.NO_INTERNET) UiText.StringResource(R.string.action_retry)
-                .asString() else null
-
-        LaunchedEffect(key1 = Unit) {
-            val snackBarResult = onShowSnackbar(message, action)
-            if (snackBarResult) {
-                items.retry()
-            }
-            moviesViewModel.resetError()
-        }
+        HandleErrorSnackBar(
+            message = it.asUiText().asString(),
+            actionLabel = it.asActionLabel(),
+            onShowSnackbar,
+            onRetry = { items.retry() },
+            onResetError = moviesViewModel::resetError
+        )
     }
 
     MoviesListScreen(
@@ -115,7 +106,11 @@ private fun MoviesListScreen(
             )
         }
     ) {
-        MoviesContent(items =items, errorSnackBar = errorSnackBar, onMovieItemClicked = onMovieItemClicked)
+        MoviesContent(
+            items = items,
+            errorSnackBar = errorSnackBar,
+            onMovieItemClicked = onMovieItemClicked
+        )
         MoviesRefreshStateHandler(items, errorSnackBar)
     }
 }
@@ -166,7 +161,7 @@ private fun MoviesContent(
     errorSnackBar: (e: Throwable) -> Unit
 ) {
 
-    val state : LazyListState  = rememberLazyListState()
+    val state: LazyListState = rememberLazyListState()
 
     LazyColumn(
         state = state
@@ -218,11 +213,14 @@ private fun MovieItem(
     Column(
         modifier
             .fillMaxWidth()
-            .clickable(
-                onClick = onMovieItemClicked
-            )
     ) {
-        MovieImage(item.posterPath, modifier = Modifier.fillMaxWidth())
+        DynamicImageAsync(
+            model = item.posterPath,
+            onImageClicked = onMovieItemClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(2f / 3f)
+        )
         Spacer(Modifier.height(4.dp))
         Column(
             modifier = Modifier
@@ -257,41 +255,6 @@ private fun MovieItem(
     }
 }
 
-@Composable
-private fun MovieImage(
-    posterPath: String,
-    modifier: Modifier = Modifier,
-    placeHolder: Painter = painterResource(R.drawable.ic_placeholder_movie)
-) {
-
-    var isLoading by remember { mutableStateOf(true) }
-    var isError by remember { mutableStateOf(false) }
-    val imageLoader = rememberAsyncImagePainter(
-        model = posterPath,
-        onState = { state ->
-            isLoading = state is AsyncImagePainter.State.Loading
-            isError = state is AsyncImagePainter.State.Error
-        }
-    )
-    Box(
-        modifier,
-
-        ) {
-        if (isLoading) {
-            Box(
-                modifier
-                    .aspectRatio(2f / 3f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
-        }
-        Image(
-            painter = if (isError.not()) imageLoader else placeHolder,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.aspectRatio(2f / 3f),
-            contentDescription = null
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

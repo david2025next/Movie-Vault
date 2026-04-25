@@ -23,6 +23,10 @@ class OffLineFirstMoviesRepository @Inject constructor(
     private val movaNetworkDataSource: MovaNetworkDataSource,
     private val movieVaultDatabase: MovieVaultDatabase
 ) : MovieRepository {
+
+
+    private val movieDao = movieVaultDatabase.movieDao
+
     companion object {
         const val NETWORK_PAGE_SIZE = 20
     }
@@ -37,9 +41,13 @@ class OffLineFirstMoviesRepository @Inject constructor(
             movieVaultDatabase = movieVaultDatabase,
             movaNetworkDataSource = movaNetworkDataSource,
         ),
-        pagingSourceFactory = { movieVaultDatabase.movieDao.getPagingMovies() }
+        pagingSourceFactory = { movieDao.getPagingMovies() }
     ).flow
         .map { value -> value.map { movieEntity -> movieEntity.asExternalModel() } }
 
+    override fun getMovieFlow(id: Int): Flow<Movie> = movieDao.getMovie(id)
 
+    override suspend fun toggleFavorite(movieId: Int, isFavorite: Boolean) {
+        movieDao.toggleFavorite(movieId, isFavorite)
+    }
 }
