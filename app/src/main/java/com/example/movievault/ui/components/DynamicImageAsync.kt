@@ -21,7 +21,7 @@ import com.example.movievault.R
 
 @Composable
 fun DynamicImageAsync(
-    model: String,
+    model: String?,
     modifier: Modifier = Modifier,
     placeholder: Painter = painterResource(R.drawable.ic_placeholder_movie),
     onImageClicked: () -> Unit = {}
@@ -39,9 +39,7 @@ fun DynamicImageAsync(
     )
 
     Box(
-        Modifier.clickable(
-            onClick = onImageClicked
-        )
+        Modifier
     ) {
         if (isLoading) {
             Box(
@@ -51,7 +49,9 @@ fun DynamicImageAsync(
         Image(
             painter = if (isError.not()) imageLoader else placeholder,
             contentDescription = null,
-            modifier = modifier,
+            modifier = modifier.clickable(
+                onClick = onImageClicked
+            ),
             contentScale = ContentScale.Crop
         )
     }

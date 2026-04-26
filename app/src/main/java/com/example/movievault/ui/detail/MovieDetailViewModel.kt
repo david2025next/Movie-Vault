@@ -8,47 +8,58 @@ import com.example.movievault.data.repository.ActorRepository
 import com.example.movievault.data.repository.MovieRepository
 import com.example.movievault.domain.DataErrors
 import com.example.movievault.domain.Result
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-class MovieDetailViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = MovieDetailViewModel.Factory::class)
+class MovieDetailViewModel @AssistedInject constructor(
     private val actorRepository: ActorRepository,
-    private val movieRepository: MovieRepository
+    private val movieRepository: MovieRepository,
+    @Assisted val movieId: Int
 ) : ViewModel() {
 
     private val _errorUiState = MutableStateFlow<DataErrors?>(null)
     val errorUiState = _errorUiState.asStateFlow()
 
     val uiState = combine(
-        actorRepository.getActorsForMovieWithId(1226863),
-        movieRepository.getMovieFlow(1226863)
+        actorRepository.getActorsForMovieWithId(movieId),
+        movieRepository.getMovieFlow(movieId)
     ) { actors, movie ->
         MovieDetailUiState.Success(MovieActors(movie, actors))
     }
+        .onStart {
+            syncActors()
+        }
         .stateIn(
             viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             MovieDetailUiState.Loading
         )
 
-    init {
-        syncActors()
+    @AssistedFactory
+    interface Factory {
+        fun create(movieId: Int): MovieDetailViewModel
     }
 
-    fun onResetError(){
+
+    fun onResetError() {
         _errorUiState.update { null }
     }
+
     fun syncActors() {
         viewModelScope.launch {
-            when (val result = actorRepository.syncActors(1226863)) {
+            when (val result = actorRepository.syncActors(movieId)) {
                 is Result.Error -> {
                     _errorUiState.update { result.error }
                 }
@@ -58,9 +69,9 @@ class MovieDetailViewModel @Inject constructor(
         }
     }
 
-    fun onToggleFavorites(isFavorite : Boolean){
+    fun onToggleFavorites(isFavorite: Boolean) {
         viewModelScope.launch {
-            movieRepository.toggleFavorite(1226863, isFavorite)
+            movieRepository.toggleFavorite(movieId, isFavorite)
         }
     }
 }

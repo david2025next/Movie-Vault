@@ -1,22 +1,26 @@
 package com.example.movievault.data.database.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.movievault.data.model.Movie
 
 
-@Entity("movie")
+@Entity(
+    tableName = "movie",
+    indices = [Index("id", unique = true)])
 data class MovieEntity(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    val idLocal: Long = 0,
     val id: Int,
     val title: String,
     val releaseDate: String,
     val posterPath: String,
-    val overview : String,
-    val isFavorite : Boolean = false,
+    val overview: String,
+    val isFavorite: Boolean = false,
     val voteAverage: Double,
     val voteCount: Int,
-    val popularity : Double,
+    val popularity: Double,
     val updateAt: Long = System.currentTimeMillis()
 )
 

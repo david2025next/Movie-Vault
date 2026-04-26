@@ -59,7 +59,7 @@ import com.example.movievault.ui.utils.asUiText
 fun MovieDetailScreen(
     onShowSnackbar: suspend (message: String, action: String?) -> Boolean,
     onBack: () -> Unit,
-    movieDetailViewModel: MovieDetailViewModel = hiltViewModel()
+    movieDetailViewModel: MovieDetailViewModel
 ) {
 
     val uiState by movieDetailViewModel.uiState.collectAsStateWithLifecycle()

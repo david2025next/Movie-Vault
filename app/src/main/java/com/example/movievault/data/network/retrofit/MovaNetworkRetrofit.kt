@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 private interface MovaRetrofitApi {
 
-    @GET("movie/popular")
+    @GET("trending/movie/day")
     suspend fun getMovies(
         @Query("page") page: Int,
         @Query("language") language: String
@@ -36,8 +36,7 @@ private interface MovaRetrofitApi {
 @Serializable
 data class NetworkActorsResponse<T>(
     @SerialName("cast")
-    val data: T,
-    val id: Int
+    val data: T
 )
 
 @Serializable

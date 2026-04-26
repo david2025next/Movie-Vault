@@ -8,7 +8,7 @@ private const val IMAGE_URL = "https://image.tmdb.org/t/p/w500"
 data class NetworkActor(
     val name: String,
     @SerialName("profile_path")
-    val profilePath: String,
+    val profilePath: String? = null,
     val character: String
 )
 
@@ -16,7 +16,7 @@ data class NetworkActor(
 fun NetworkActor.asEntity(movieId: Int) = ActorEntity(
     name = name,
     character = character,
-    profilePath = "$IMAGE_URL/$profilePath",
+    profilePath = if(profilePath!=null) "$IMAGE_URL/$profilePath" else null,
     movieId = movieId
 )
 
