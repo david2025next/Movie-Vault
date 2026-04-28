@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
@@ -47,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.movievault.R
 import com.example.movievault.data.model.Actor
 import com.example.movievault.data.model.Movie
 import com.example.movievault.ui.components.DynamicImageAsync
@@ -315,7 +317,8 @@ private fun CastMemberItem(
         DynamicImageAsync(
             actor.profilePath, Modifier
                 .size(100.dp)
-                .clip(CircleShape)
+                .clip(CircleShape),
+            placeholder = painterResource(R.drawable.ic_default_user_profile)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

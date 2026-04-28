@@ -33,7 +33,12 @@ interface MovieDao {
     """)
     fun getPagingMovies() : PagingSource<Int, MovieEntity>
 
-
+    @Query(
+        value = """
+            SELECT * FROM movie WHERE isFavorite =true
+        """
+    )
+    fun getFavoritesStream(): Flow<List<MovieEntity>>
     @Query(
         value = """
             SELECT MAX(updateAt) FROM movie

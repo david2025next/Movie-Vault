@@ -15,8 +15,7 @@ fun EntryProviderScope<NavKey>.movieListEntry(onMovieItemClick: (Int) -> Unit) {
             onShowSnackbar = { message, action ->
                 snackbarHostState.showSnackbar(
                     message = message,
-                    actionLabel = action,
-                    duration = SnackbarDuration.Short
+                    actionLabel = action
                 ) == SnackbarResult.ActionPerformed
             }
         )
