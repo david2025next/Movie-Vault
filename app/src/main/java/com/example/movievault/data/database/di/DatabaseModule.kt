@@ -24,12 +24,4 @@ object DatabaseModule {
         MovieVaultDatabase::class.java,
         "movie_vault_db"
     ).build()
-
-    @Provides
-    @Singleton
-    fun providesMovieDao(movieVaultDatabase: MovieVaultDatabase) : MovieDao = movieVaultDatabase.movieDao
-
-    @Provides
-    @Singleton
-    fun providesActorDao(movieVaultDatabase: MovieVaultDatabase) : ActorDao = movieVaultDatabase.actorDao
 }

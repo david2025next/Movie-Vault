@@ -16,9 +16,9 @@ import com.example.movievault.data.database.model.RemoteKeysEntity
 )
 abstract class MovieVaultDatabase : RoomDatabase() {
 
-    abstract val movieDao: MovieDao
+    abstract fun movieDao(): MovieDao
 
-    abstract val remoteKeysDao: RemoteKeysDao
+    abstract fun remoteKeysDao(): RemoteKeysDao
 
-    abstract val actorDao: ActorDao
+    abstract fun actorDao(): ActorDao
 }

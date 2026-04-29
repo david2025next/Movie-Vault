@@ -24,8 +24,6 @@ object NetworkModule {
     @Provides
     @Singleton
     fun providesNetworkJson(): Json = Json { ignoreUnknownKeys = true }
-
-
     @Provides
     @Singleton
     fun providesOkhttpCallFactory(): OkHttpClient =

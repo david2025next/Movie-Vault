@@ -24,7 +24,7 @@ fun EntryProviderScope<NavKey>.movieDetailEntry(onBack: () -> Unit) {
                     actionLabel = action
                 ) == SnackbarResult.ActionPerformed
             },
-            movieDetailViewModel = viewModel
+            viewModel = viewModel
         )
     }
 }

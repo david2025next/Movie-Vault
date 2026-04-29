@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -46,7 +45,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.movievault.R
 import com.example.movievault.data.model.Actor
@@ -61,11 +59,11 @@ import com.example.movievault.ui.utils.asUiText
 fun MovieDetailScreen(
     onShowSnackbar: suspend (message: String, action: String?) -> Boolean,
     onBack: () -> Unit,
-    movieDetailViewModel: MovieDetailViewModel
+    viewModel: MovieDetailViewModel
 ) {
 
-    val uiState by movieDetailViewModel.uiState.collectAsStateWithLifecycle()
-    val error by movieDetailViewModel.errorUiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val error by viewModel.errorUiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -73,8 +71,8 @@ fun MovieDetailScreen(
         HandleErrorSnackBar(
             message = it.asUiText().asString(),
             actionLabel = it.asActionLabel(),
-            onRetry = movieDetailViewModel::syncActors,
-            onResetError = movieDetailViewModel::onResetError,
+            onRetry = viewModel::syncActors,
+            onResetError = viewModel::onResetError,
             onShowSnackbar = onShowSnackbar
         )
     }
@@ -95,7 +93,7 @@ fun MovieDetailScreen(
                 movie = movie,
                 actors = (uiState as MovieDetailUiState.Success).data.actors,
                 onBack = onBack,
-                onToggleFavorite = { movieDetailViewModel.onToggleFavorites(!movie.isFavorite) },
+                onToggleFavorite = { viewModel.onToggleFavorites(!movie.isFavorite) },
                 onShare = {
                     Toast.makeText(
                         context,

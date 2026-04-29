@@ -26,7 +26,7 @@ class OffLineFirstMoviesRepository @Inject constructor(
 ) : MovieRepository {
 
 
-    private val movieDao = movieVaultDatabase.movieDao
+    private val movieDao = movieVaultDatabase.movieDao()
 
     companion object {
         const val NETWORK_PAGE_SIZE = 20
