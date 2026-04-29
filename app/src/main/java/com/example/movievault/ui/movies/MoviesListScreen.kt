@@ -1,8 +1,6 @@
 package com.example.movievault.ui.movies
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,15 +25,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,9 +37,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
-import com.example.movievault.R
 import com.example.movievault.data.model.Movie
 import com.example.movievault.ui.components.DynamicImageAsync
 import com.example.movievault.ui.components.HandleErrorSnackBar
@@ -58,11 +47,11 @@ import com.example.movievault.ui.utils.asUiText
 fun MoviesListScreen(
     onMovieItemClicked: (Int) -> Unit,
     onShowSnackbar: suspend (message: String, action: String?) -> Boolean,
-    moviesViewModel: MoviesViewModel = hiltViewModel()
+    viewModel: MoviesViewModel = hiltViewModel()
 ) {
 
-    val items = moviesViewModel.uiState.collectAsLazyPagingItems()
-    val error by moviesViewModel.error.collectAsStateWithLifecycle()
+    val items = viewModel.uiState.collectAsLazyPagingItems()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     error?.let {
         HandleErrorSnackBar(
@@ -70,14 +59,14 @@ fun MoviesListScreen(
             actionLabel = it.asActionLabel(),
             onShowSnackbar,
             onRetry = { items.retry() },
-            onResetError = moviesViewModel::resetError
+            onResetError = viewModel::resetError
         )
     }
 
     MoviesListScreen(
         items = items,
         onMovieItemClicked = onMovieItemClicked,
-        errorSnackBar = moviesViewModel::errorHandler,
+        onError = viewModel::errorHandler,
         modifier = Modifier.fillMaxSize()
     )
 }
@@ -89,7 +78,7 @@ private fun MoviesListScreen(
     items: LazyPagingItems<Movie>,
     onMovieItemClicked: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    errorSnackBar: (e: Throwable) -> Unit
+    onError: (e: Throwable) -> Unit
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val isRefreshing = items.loadState.refresh is LoadState.Loading
@@ -108,25 +97,29 @@ private fun MoviesListScreen(
     ) {
         MoviesContent(
             items = items,
-            errorSnackBar = errorSnackBar,
+            onError = onError,
             onMovieItemClicked = onMovieItemClicked
         )
-        MoviesRefreshStateHandler(items, errorSnackBar)
+        MoviesRefreshStateHandler(items.itemCount, items.loadState.refresh, onError)
     }
 }
 
 @Composable
-fun MoviesRefreshStateHandler(items: LazyPagingItems<Movie>, errorHandle: (e: Throwable) -> Unit) {
-    when (val state = items.loadState.refresh) {
+fun MoviesRefreshStateHandler(
+    itemCount: Int,
+    state: LoadState,
+    onError: (e: Throwable) -> Unit
+) {
+    when (state) {
         is LoadState.Error -> {
-            if (items.itemCount == 0) {
+            if (itemCount == 0) {
                 FullScreenError()
             }
-            errorHandle(state.error)
+            onError(state.error)
         }
 
         LoadState.Loading -> {
-            if (items.itemCount == 0) {
+            if (itemCount == 0) {
                 FullScreenLoading()
             }
         }
@@ -137,6 +130,9 @@ fun MoviesRefreshStateHandler(items: LazyPagingItems<Movie>, errorHandle: (e: Th
 
 @Composable
 fun FullScreenError(modifier: Modifier = Modifier) {
+    /*
+    show full screen empty movie and error to load
+     */
     Box(
         modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -158,7 +154,7 @@ fun FullScreenLoading(modifier: Modifier = Modifier) {
 private fun MoviesContent(
     items: LazyPagingItems<Movie>,
     onMovieItemClicked: (Int) -> Unit,
-    errorSnackBar: (e: Throwable) -> Unit
+    onError: (e: Throwable) -> Unit
 ) {
 
     val state: LazyListState = rememberLazyListState()
@@ -176,16 +172,16 @@ private fun MoviesContent(
         }
 
         item {
-            MoviesAppendStateHandler(items, errorHandle = errorSnackBar)
+            MoviesAppendStateHandler(items.loadState.append, onError = onError)
         }
     }
 }
 
 @Composable
-fun MoviesAppendStateHandler(items: LazyPagingItems<Movie>, errorHandle: (e: Throwable) -> Unit) {
-    when (val state = items.loadState.append) {
+fun MoviesAppendStateHandler(state: LoadState, onError: (e: Throwable) -> Unit) {
+    when (state) {
         is LoadState.Error -> {
-            errorHandle(state.error)
+            onError(state.error)
         }
 
         LoadState.Loading -> BottomLoading()
