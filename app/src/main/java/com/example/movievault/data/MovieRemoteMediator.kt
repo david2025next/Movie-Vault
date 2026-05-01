@@ -11,15 +11,14 @@ import com.example.movievault.data.database.model.MovieEntity
 import com.example.movievault.data.database.model.RemoteKeysEntity
 import com.example.movievault.data.network.MovaNetworkDataSource
 import com.example.movievault.data.network.model.toEntities
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class MovieRemoteMediator(
     private val movaNetworkDataSource: MovaNetworkDataSource,
     private val movieVaultDatabase: MovieVaultDatabase
 ) : RemoteMediator<Int, MovieEntity>() {
-    val movieDao = movieVaultDatabase.movieDao
-    val remoteKeysDao = movieVaultDatabase.remoteKeysDao
+    val movieDao = movieVaultDatabase.movieDao()
+    val remoteKeysDao = movieVaultDatabase.remoteKeysDao()
 
     companion object {
         const val TMDB_STARTING_PAGE_INDEX = 1
@@ -79,6 +78,7 @@ class MovieRemoteMediator(
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (ex: Exception) {
+            Log.d("TAG", "load remote: ${ex.message}")
             MediatorResult.Error(ex)
         }
 
@@ -90,7 +90,7 @@ class MovieRemoteMediator(
             .lastOrNull { it.data.isNotEmpty() }
             ?.data
             ?.lastOrNull()
-            ?.let { movieEntity -> movieVaultDatabase.remoteKeysDao.remoteKeyMovieId(movieEntity.id) }
+            ?.let { movieEntity -> movieVaultDatabase.remoteKeysDao().remoteKeyMovieId(movieEntity.id) }
     }
 
     private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, MovieEntity>): RemoteKeysEntity? {
@@ -100,7 +100,7 @@ class MovieRemoteMediator(
             .firstOrNull { it.data.isNotEmpty() }
             ?.data
             ?.firstOrNull()
-            ?.let { movieEntity -> movieVaultDatabase.remoteKeysDao.remoteKeyMovieId(movieEntity.id) }
+            ?.let { movieEntity -> movieVaultDatabase.remoteKeysDao().remoteKeyMovieId(movieEntity.id) }
     }
 
     private suspend fun getRemoteKeyClosestToCurrentPosition(
@@ -110,7 +110,7 @@ class MovieRemoteMediator(
             .anchorPosition
             ?.let { position ->
                 state.closestItemToPosition(position)?.id?.let { movieId ->
-                    movieVaultDatabase.remoteKeysDao.remoteKeyMovieId(movieId)
+                    movieVaultDatabase.remoteKeysDao().remoteKeyMovieId(movieId)
                 }
             }
     }

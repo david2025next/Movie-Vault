@@ -7,6 +7,7 @@ import com.example.movievault.data.network.model.NetworkMovie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -52,7 +53,7 @@ private const val BACKEND_URL = BuildConfig.BACKEND_URL
 @Singleton
 class MovaNetworkRetrofit @Inject constructor(
     networkJson: Json,
-    private val okHttpCallFactory: dagger.Lazy<OkHttpClient>
+    private val okHttpCallFactory: dagger.Lazy<Call.Factory>
 ) : MovaNetworkDataSource {
     private val retrofit = Retrofit.Builder()
         .baseUrl(BACKEND_URL)

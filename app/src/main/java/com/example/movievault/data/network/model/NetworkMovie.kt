@@ -13,7 +13,7 @@ data class NetworkMovie(
     val title: String,
     val overview: String,
     @SerialName("poster_path")
-    val posterPath: String,
+    val posterPath: String? = null,
     @SerialName("release_date")
     val releaseDate: String,
     @SerialName("vote_average")
@@ -28,7 +28,7 @@ private fun NetworkMovie.asEntity() = MovieEntity(
     id = id,
     title = title,
     releaseDate = releaseDate,
-    posterPath = "$IMAGE_URL$posterPath",
+    posterPath = if(posterPath !=null ) "$IMAGE_URL$posterPath" else null,
     voteAverage = voteAverage,
     voteCount = voteCount,
     popularity = popularity,
